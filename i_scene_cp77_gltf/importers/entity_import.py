@@ -148,7 +148,7 @@ def importEnt( filepath='', appearances=[], exclude_meshes=[], with_materials=Tr
     else: 
         print('no rig json loaded')
                 
-    if len(meshes)<1 or len(app_path)<1:
+    if len(meshes)<1 and len(app_path)<1:
         print("You need to export the meshes and convert app and ent to json")
         return
 
@@ -191,31 +191,28 @@ def importEnt( filepath='', appearances=[], exclude_meshes=[], with_materials=Tr
                 # Find the appearance in the entity app list
                 for i,a in enumerate(ent_apps):
                     if a['appearanceName']['$value']==app_name:
-                        print('appearance matched, id = ',i)
+                        print('Entity appearance matchedusing appearanceName, id = ',i)
                         ent_app_idx=i
+                        break
 
                 # apparently they sometimes just sack it off and use the name not the appearanceName after all. (single_doors.ent for instance)
                 if ent_app_idx<0:
                     for i,a in enumerate(ent_apps):
                         if a['name']['$value']==app_name:
-                            print('appearance matched, id = ',i)
+                            print('Entity appearance matched using name, id = ',i)
                             ent_app_idx=i
                             app_name=a['appearanceName']['$value']
+                            break
 
                 if ent_app_idx<0 and app_name =='default':
                     ent_default=j['Data']['RootChunk']['defaultAppearance']['$value']
                     for i,a in enumerate(ent_apps):
                         if a['name']['$value']==ent_default:
-                            print('appearance matched, id = ',i)
+                            print('Entity appearance matched to default, id = ',i)
                             ent_app_idx=i
                             app_name=a['appearanceName']['$value']
-                            continue
-                        if a['name']['$value']==ent_default:
-                            print('appearance matched, id = ',i)
-                            ent_app_idx=i
-                            app_name=a['appearanceName']['$value']
-                            continue
-                else:
+                            break
+                elif ent_app_idx<0:
                     ent_app_idx=0
 
                 app_file = ent_apps[ent_app_idx]['appearanceResource']['DepotPath']['$value']
@@ -231,10 +228,11 @@ def importEnt( filepath='', appearances=[], exclude_meshes=[], with_materials=Tr
                     apps=a_j['Data']['RootChunk']['appearances']
                     app_idx=0
                     for i,a in enumerate(apps):
-                        #print(i,a['Data']['name'])
+                        print(i,a['Data']['name'])
                         if a['Data']['name']['$value']==app_name:
-                            print('appearance matched, id = ',i)
+                            print('App file appearance matched, id = ',i)
                             app_idx=i
+                            break
                     chunks=None
                     if 'Data' in a_j['Data']['RootChunk']['appearances'][app_idx].keys():
                         if a_j['Data']['RootChunk']['appearances'][app_idx]['Data']['components']:
