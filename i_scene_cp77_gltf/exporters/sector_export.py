@@ -1,8 +1,7 @@
 # Script to export CP2077 streaming sectors from Blender 
 # Just does changes to existing bits so far
 # By Simarilius Jan 2023
-# last updated 8-8-23
-# latest version available at https://github.com/Simarilius-uk/CP2077_BlenderScripts
+# last updated 7-12-23
 # use with the plugin from https://github.com/WolvenKit/Cyberpunk-Blender-add-on use 1.4RC or newer for wkit newer than Jul 4th 23
 #
 #  __       __   ___  __   __  .  . .  . .   .       __   ___  __  ___  __   __      ___  __  . ___ . .  .  __  
@@ -27,6 +26,7 @@ import os
 import bpy
 import copy
 from mathutils import Vector, Matrix, Quaternion
+from ..main.bartmoss_functions import all
 C = bpy.context
 
 
@@ -44,214 +44,27 @@ if not os.path.exists(outpath):
     os.makedirs(outpath)
     print('created output directory')
     
-def checkexists(meshname, Masters):
-    groupname = os.path.splitext(os.path.split(meshname['$value'])[-1])[0]
-    if groupname in Masters.children.keys() and len(Masters.children[groupname].objects)>0:
-        return True
-    else:
-        return False
 
-def get_pos(inst):
-    pos=[0,0,0]
-    if 'Position' in inst.keys():
-        if 'Properties' in inst['Position'].keys():
-            pos[0] = inst['Position']['Properties']['X'] 
-            pos[1] = inst['Position']['Properties']['Y'] 
-            pos[2] = inst['Position']['Properties']['Z']           
-        else:
-            if 'X' in inst['Position'].keys():
-                pos[0] = inst['Position']['X'] 
-                pos[1] = inst['Position']['Y'] 
-                pos[2] = inst['Position']['Z'] 
-            else:
-                pos[0] = inst['Position']['x'] 
-                pos[1] = inst['Position']['y'] 
-                pos[2] = inst['Position']['z'] 
-    elif 'position' in inst.keys():
-        if 'X' in inst['position'].keys():
-                pos[0] = inst['position']['X'] 
-                pos[1] = inst['position']['Y'] 
-                pos[2] = inst['position']['Z'] 
-    elif 'translation' in inst.keys():
-        pos[0] = inst['translation']['X'] 
-        pos[1] = inst['translation']['Y'] 
-        pos[2] = inst['translation']['Z']
-    return pos
-
-def get_rot(inst):
-    rot=[0,0,0,0]
-    if 'Orientation' in inst.keys():
-        if 'Properties' in inst['Orientation'].keys():
-            rot[0] = inst['Orientation']['Properties']['r']  
-            rot[1] = inst['Orientation']['Properties']['i'] 
-            rot[2] = inst['Orientation']['Properties']['j'] 
-            rot[3] = inst['Orientation']['Properties']['k']            
-        else:
-            rot[0] = inst['Orientation']['r'] 
-            rot[1] = inst['Orientation']['i'] 
-            rot[2] = inst['Orientation']['j'] 
-            rot[3] = inst['Orientation']['k'] 
-    elif 'orientation' in inst.keys():
-            rot[0] = inst['orientation']['r'] 
-            rot[1] = inst['orientation']['i'] 
-            rot[2] = inst['orientation']['j'] 
-            rot[3] = inst['orientation']['k'] 
-    elif 'Rotation' in inst.keys():
-            rot[0] = inst['Rotation']['r'] 
-            rot[1] = inst['Rotation']['i'] 
-            rot[2] = inst['Rotation']['j'] 
-            rot[3] = inst['Rotation']['k'] 
-    elif 'rotation' in inst.keys():
-            rot[0] = inst['rotation']['r'] 
-            rot[1] = inst['rotation']['i'] 
-            rot[2] = inst['rotation']['j'] 
-            rot[3] = inst['rotation']['k'] 
-    return rot
-
-def set_pos(inst,obj):  
-    #print(inst)  
-    if 'Position'in inst.keys():
-        if 'Properties' in inst['Position'].keys():
-            inst['Position']['Properties']['X']= float("{:.9g}".format(obj.location[0]))
-            inst['Position']['Properties']['Y'] = float("{:.9g}".format(obj.location[1]))
-            inst['Position']['Properties']['Z'] = float("{:.9g}".format(obj.location[2]))
-        else:
-            if 'X' in inst['Position'].keys():
-                inst['Position']['X'] = float("{:.9g}".format(obj.location[0]))
-                inst['Position']['Y'] = float("{:.9g}".format(obj.location[1]))
-                inst['Position']['Z'] = float("{:.9g}".format(obj.location[2]))
-            else:
-                inst['Position']['x'] = float("{:.9g}".format(obj.location[0]))
-                inst['Position']['y'] = float("{:.9g}".format(obj.location[1]))
-                inst['Position']['z'] = float("{:.9g}".format(obj.location[2]))
-    elif 'position' in inst.keys():
-        inst['position']['X'] = float("{:.9g}".format(obj.location[0]))
-        inst['position']['Y'] = float("{:.9g}".format(obj.location[1]))
-        inst['position']['Z'] = float("{:.9g}".format(obj.location[2]))
-    elif 'translation' in inst.keys():
-        inst['translation']['X'] = float("{:.9g}".format(obj.location[0]))
-        inst['translation']['Y'] = float("{:.9g}".format(obj.location[1]))
-        inst['translation']['Z'] = float("{:.9g}".format(obj.location[2]))
-
-def set_z_pos(inst,obj):  
-    #print(inst)  
-    if 'Position'in inst.keys():
-        if 'Properties' in inst['Position'].keys():
-            inst['Position']['Properties']['Z'] = float("{:.9g}".format(obj.location[2]))
-        else:
-            if 'X' in inst['Position'].keys():
-                inst['Position']['Z'] = float("{:.9g}".format(obj.location[2]))
-            else:
-                inst['Position']['z'] = float("{:.9g}".format(obj.location[2]))
-    elif 'position' in inst.keys():
-        inst['position']['Z'] = float("{:.9g}".format(obj.location[2]))
-    elif 'translation' in inst.keys():
-        inst['translation']['Z'] = float("{:.9g}".format(obj.location[2]))
-
-def set_rot(inst,obj):
-    if 'Orientation' in inst.keys():
-        if 'Properties' in inst['Orientation'].keys():
-            inst['Orientation']['Properties']['r'] = float("{:.9g}".format(obj.rotation_quaternion[0] ))
-            inst['Orientation']['Properties']['i'] = float("{:.9g}".format(obj.rotation_quaternion[1] )) 
-            inst['Orientation']['Properties']['j'] = float("{:.9g}".format(obj.rotation_quaternion[2] ))  
-            inst['Orientation']['Properties']['k'] = float("{:.9g}".format(obj.rotation_quaternion[3] ))        
-        else:
-            inst['Orientation']['r'] = float("{:.9g}".format(obj.rotation_quaternion[0] ))
-            inst['Orientation']['i'] = float("{:.9g}".format(obj.rotation_quaternion[1] ))
-            inst['Orientation']['j'] = float("{:.9g}".format(obj.rotation_quaternion[2] ))
-            inst['Orientation']['k'] = float("{:.9g}".format(obj.rotation_quaternion[3] ))
-    elif 'Rotation' in inst.keys():
-            inst['Rotation']['r'] = float("{:.9g}".format(obj.rotation_quaternion[0] ))
-            inst['Rotation']['i'] = float("{:.9g}".format(obj.rotation_quaternion[1] )) 
-            inst['Rotation']['j'] = float("{:.9g}".format(obj.rotation_quaternion[2] ))
-            inst['Rotation']['k'] = float("{:.9g}".format(obj.rotation_quaternion[3] ))
-    elif 'rotation' in inst.keys():
-            inst['rotation']['r'] = float("{:.9g}".format(obj.rotation_quaternion[0] ))
-            inst['rotation']['i'] = float("{:.9g}".format(obj.rotation_quaternion[1] )) 
-            inst['rotation']['j'] = float("{:.9g}".format(obj.rotation_quaternion[2] ))
-            inst['rotation']['k'] = float("{:.9g}".format(obj.rotation_quaternion[3] ))
-    elif 'orientation' in inst.keys():
-            inst['orientation']['r'] = float("{:.9g}".format(obj.rotation_quaternion[0] ))
-            inst['orientation']['i'] = float("{:.9g}".format(obj.rotation_quaternion[1] )) 
-            inst['orientation']['j'] = float("{:.9g}".format(obj.rotation_quaternion[2] ))
-            inst['orientation']['k'] = float("{:.9g}".format(obj.rotation_quaternion[3] ))
-
-def set_scale(inst,obj):
-    if 'Scale' in inst.keys():
-        if 'Properties' in inst['Scale'].keys():
-            inst['Scale']['Properties']['X'] = float("{:.9g}".format(obj.scale[0]))
-            inst['Scale']['Properties']['Y'] = float("{:.9g}".format(obj.scale[1]))
-            inst['Scale']['Properties']['Z']= float("{:.9g}".format(obj.scale[2]))
-        else:
-            inst['Scale']['X']  = float("{:.9g}".format(obj.scale[0]))
-            inst['Scale']['Y']  = float("{:.9g}".format(obj.scale[1]))
-            inst['Scale']['Z']  = float("{:.9g}".format(obj.scale[2]))
-    elif 'scale' in inst.keys():
-            inst['scale']['X']  = float("{:.9g}".format(obj.scale[0]))
-            inst['scale']['Y']  = float("{:.9g}".format(obj.scale[1]))
-            inst['scale']['Z']  = float("{:.9g}".format(obj.scale[2]))
-
-def set_bounds(node, obj):
-        node["Bounds"]['Max']["X"]= float("{:.9g}".format(obj.location[0]))
-        node["Bounds"]['Max']["Y"]= float("{:.9g}".format(obj.location[1]))
-        node["Bounds"]['Max']["Z"]= float("{:.9g}".format(obj.location[2]))
-        node["Bounds"]['Min']["X"]= float("{:.9g}".format(obj.location[0]))
-        node["Bounds"]['Min']["Y"]= float("{:.9g}".format(obj.location[1]))
-        node["Bounds"]['Min']["Z"]= float("{:.9g}".format(obj.location[2]))
-
-def find_col(NodeIndex,Inst_idx,Sector_coll):
-    #print('Looking for NodeIndex ',NodeIndex,' Inst_idx ',Inst_idx, ' in ',Sector_coll)
-    col=[x for x in Sector_coll.children if x['nodeIndex']==NodeIndex]
-    if len(col)==0:
-        return None
-    elif len(col)==1:
-        return col[0]
-    else: 
-        inst=[x for x in col if x['instance_idx']==Inst_idx]
-        if len(inst)>0:
-            return inst[0]
-    return None
-
-def find_wIDMN_col(NodeIndex,tl_inst_idx, sub_inst_idx,Sector_coll):
-    #print('Looking for NodeIndex ',NodeIndex,' Inst_idx ',Inst_idx, ' in ',Sector_coll)
-    col=[x for x in Sector_coll.children if x['nodeIndex']==NodeIndex]
-    if len(col)==0:
-        return None
-    elif len(col)==1:
-        return col[0]
-    else: 
-        inst=[x for x in col if x['tl_instance_idx']==tl_inst_idx and x['sub_instance_idx']==sub_inst_idx]
-        if len(inst)>0:
-            return inst[0]
-    return None
-
-def find_decal(NodeIndex,Inst_idx,Sector_coll):
-    #print('Looking for NodeIndex ',NodeIndex,' Inst_idx ',Inst_idx, ' in ',Sector_coll)
-    col=[x for x in Sector_coll.objects if x['nodeIndex']==NodeIndex]
-    if len(col)==0:
-        return None
-    elif len(col)==1:
-        return col[0]
-    else: 
-        inst=[x for x in col if x['instance_idx']==Inst_idx]
-        if len(inst)>0:
-            return inst[0]
-    return None
 
 def createNodeData(t, col, nodeIndex, obj, ID):
     print(ID)
     t.append({'Id':ID,'Uk10':1088,'Uk11':256,'Uk12':0,'UkFloat1':60.47757,'UkHash1':1088,'QuestPrefabRefHash': 0,'MaxStreamingDistance': 3.4028235e+38})
     new = t[len(t)-1]
     new['NodeIndex']=nodeIndex
-    new['Position']={'$type': 'Vector4','W':0,'X':float("{:.9g}".format(obj.location[0])),'Y':float("{:.9g}".format(obj.location[1])),'Z':float("{:.9g}".format(obj.location[2]))}
+    new['Position']={'$type': 'Vector4','W':0,'X':float("{:.9g}".format(obj.location[0]*100)),'Y':float("{:.9g}".format(obj.location[1]*100)),'Z':float("{:.9g}".format(obj.location[2]*100))}
     new['Pivot']= {'$type': 'Vector3', 'X': 0, 'Y': 0, 'Z': 0}
     new['Bounds']= {'$type': 'Box'}
-    new['Bounds']['Max']={'$type': 'Vector4','X':float("{:.9g}".format(obj.location[0])),'Y':float("{:.9g}".format(obj.location[1])),'Z':float("{:.9g}".format(obj.location[2]))}
-    new['Bounds']['Min']={'$type': 'Vector4','X':float("{:.9g}".format(obj.location[0])),'Y':float("{:.9g}".format(obj.location[1])),'Z':float("{:.9g}".format(obj.location[2]))}
+    new['Bounds']['Max']={'$type': 'Vector4','X':float("{:.9g}".format(obj.location[0]*100)),'Y':float("{:.9g}".format(obj.location[1]*100)),'Z':float("{:.9g}".format(obj.location[2]*100))}
+    new['Bounds']['Min']={'$type': 'Vector4','X':float("{:.9g}".format(obj.location[0]*100)),'Y':float("{:.9g}".format(obj.location[1]*100)),'Z':float("{:.9g}".format(obj.location[2]*100))}
     new['Orientation']={'$type': 'Quaternion','r':float("{:.9g}".format(obj.rotation_quaternion[0])),'i':float("{:.9g}".format(obj.rotation_quaternion[1])),'j':float("{:.9g}".format(obj.rotation_quaternion[2])),'k':float("{:.9g}".format(obj.rotation_quaternion[3]))}
-    new['Scale']= {'$type': 'Vector3', 'X':  float("{:.9g}".format(obj.scale[0])), 'Y':  float("{:.9g}".format(obj.scale[1])), 'Z':  float("{:.9g}".format(obj.scale[2]))}
-    
+    new['Scale']= {'$type': 'Vector3', 'X':  float("{:.9g}".format(obj.scale[0]*100)), 'Y':  float("{:.9g}".format(obj.scale[1]*100)), 'Z':  float("{:.9g}".format(obj.scale[2]*100))}
 
+# write a function to add a component to the delete xl
+
+
+# Initialise a new sector
+# Initialise a delete xl file
+#     
 
 
 
@@ -262,21 +75,13 @@ if len(jsons)<1:
 
 Masters=bpy.data.collections.get("MasterInstances")
 
-neg_cube=None
-if 'neg_cube' not in Masters.objects.keys():
-    bpy.ops.mesh.primitive_cube_add(size=.01, scale=(-1,-1,-1),location=(0,0,-10))
-    neg_cube=C.selected_objects[0]
-    neg_cube.name='neg_cube'
-    neg_cube.users_collection[0].objects.unlink(neg_cube)
-    Masters.objects.link(neg_cube) 
-else:
-    neg_cube=Masters.objects["neg_cube"]
-
  # .  .  __ .    .. .  .  __      __  ___ .  .  ___  ___ 
  # |\/| /  \ \  / | |\ | / _`    /__`  |  |  | |__  |__  
  # |  | \__/  \/  | | \| \__/    .__/  |  \__/ |    |    
  #
-                                                      
+# Need to just delete everything that gets touched, and then add the modified version to the new sector if not empty
+# 
+#                                                       
 for filepath in jsons:
     with open(filepath,'r') as f: 
         j=json.load(f) 
@@ -383,18 +188,18 @@ for filepath in jsons:
                                     obj_trans = obj.location
                                     pos=inst_trans_m.translation
                                     #pos=obj_trans-basic_pos
-                                    inst['Position']['X'] = float("{:.9g}".format(pos[0]))
-                                    inst['Position']['Y'] = float("{:.9g}".format(pos[1]))
-                                    inst['Position']['Z'] = float("{:.9g}".format(pos[2]))
+                                    inst['Position']['X'] = float("{:.9g}".format(pos[0]*100))
+                                    inst['Position']['Y'] = float("{:.9g}".format(pos[1]*100))
+                                    inst['Position']['Z'] = float("{:.9g}".format(pos[2]*100))
                                     quat=inst_trans_m.to_quaternion()
                                     inst['Orientation']['r'] = float("{:.9g}".format(quat[0] ))
                                     inst['Orientation']['i'] = float("{:.9g}".format(quat[1] ))
                                     inst['Orientation']['j'] = float("{:.9g}".format(quat[2] ))
                                     inst['Orientation']['k'] = float("{:.9g}".format(quat[3] ))
                                     scale=inst_trans_m.to_scale()
-                                    inst['Scale']['X']=float("{:.9g}".format(scale.x))
-                                    inst['Scale']['Y']=float("{:.9g}".format(scale.y))
-                                    inst['Scale']['Z']=float("{:.9g}".format(scale.z))
+                                    inst['Scale']['X']=float("{:.9g}".format(scale.x*100))
+                                    inst['Scale']['Y']=float("{:.9g}".format(scale.y*100))
+                                    inst['Scale']['Z']=float("{:.9g}".format(scale.z*100))
                                     #set_pos(inst,obj)
                                     #set_rot(inst,obj)
                                     #set_scale(inst,obj)
@@ -462,18 +267,18 @@ for filepath in jsons:
                                     deltapos=sum(obj_trans-inst_pos)
                                     if abs(deltapos)>0.05:
                                         print('deltapos ',abs(deltapos))
-                                        inst['Position']['X'] = float("{:.9g}".format(pos[0]))
-                                        inst['Position']['Y'] = float("{:.9g}".format(pos[1]))
-                                        inst['Position']['Z'] = float("{:.9g}".format(pos[2]))
+                                        inst['Position']['X'] = float("{:.9g}".format(pos[0]*100))
+                                        inst['Position']['Y'] = float("{:.9g}".format(pos[1]*100))
+                                        inst['Position']['Z'] = float("{:.9g}".format(pos[2]*100))
                                         quat=inst_trans_m.to_quaternion()
                                         inst['Orientation']['i'] = float("{:.12g}".format(quat[0] ))
                                         inst['Orientation']['j'] = float("{:.12g}".format(quat[1] ))
                                         inst['Orientation']['k'] = float("{:.12g}".format(quat[2] ))
                                         inst['Orientation']['r'] = float("{:.12g}".format(quat[3] ))
                                         scale=inst_trans_m.to_scale()
-                                        inst['Scale']['X']=float("{:.9g}".format(scale.x))
-                                        inst['Scale']['Y']=float("{:.9g}".format(scale.y))
-                                        inst['Scale']['Z']=float("{:.9g}".format(scale.z))
+                                        inst['Scale']['X']=float("{:.9g}".format(scale.x*100))
+                                        inst['Scale']['Y']=float("{:.9g}".format(scale.y*100))
+                                        inst['Scale']['Z']=float("{:.9g}".format(scale.z*100))
                                 else:
                                     inst['Position']['Z']=-300
     print(wIMNs)
@@ -575,9 +380,9 @@ for filepath in jsons:
                         inst_m_inv=inst_m.inverted()
                         inst_trans_m = inst_m_inv @ obj.matrix_local 
                         pos=inst_trans_m.translation
-                        trans['position']['X']=pos[0]
-                        trans['position']['Y']=pos[1]
-                        trans['position']['Z']=pos[2]
+                        trans['position']['X']=pos[0]*100
+                        trans['position']['Y']=pos[1]*100
+                        trans['position']['Z']=pos[2]*100
                         quat=inst_trans_m.to_quaternion()
                         trans['orientation']['r']=-quat[0]
                         trans['orientation']['i']=-quat[1]
