@@ -1,0 +1,170 @@
+{
+  "Header": {
+    "WolvenKitVersion": "8.11.2-nightly.2023-11-29\u002B97389586a2b0e254026623923d4cb1c8dcfc670e",
+    "WKitJsonVersion": "0.0.8",
+    "GameVersion": 2020,
+    "ExportedDateTime": "2023-12-27T23:42:15.2627592Z",
+    "DataType": "CR2W",
+    "ArchiveFileName": "D:\\cpmod\\multimesh\\source\\archive\\empty.streamingsector"
+  },
+  "Data": {
+    "Version": 195,
+    "BuildVersion": 0,
+    "RootChunk": {
+      "$type": "worldStreamingSector",
+      "category": "Exterior",
+      "cookingPlatform": "PLATFORM_PC",
+      "externInplaceResource": {
+        "DepotPath": {
+          "$type": "ResourcePath",
+          "$storage": "uint64",
+          "$value": "0"
+        },
+        "Flags": "Default"
+      },
+      "level": 2,
+      "localInplaceResource": [],
+      "nodeData": {
+        "BufferId": "0",
+        "Flags": 4063232,
+        "Type": "WolvenKit.RED4.Archive.Buffer.worldNodeDataBuffer, WolvenKit.RED4, Version=2.1.0.0, Culture=neutral, PublicKeyToken=null",
+        "Data": [
+          {
+            "Id": "2131517432784",
+            "NodeIndex": 0,
+            "Position": {
+              "$type": "Vector4",
+              "W": 0,
+              "X": -5772.17334,
+              "Y": -3334.16431,
+              "Z": 0
+            },
+            "Orientation": {
+              "$type": "Quaternion",
+              "i": 0,
+              "j": 0,
+              "k": 0,
+              "r": 1
+            },
+            "Scale": {
+              "$type": "Vector3",
+              "X": 1,
+              "Y": 1,
+              "Z": 1
+            },
+            "Pivot": {
+              "$type": "Vector3",
+              "X": -5772.17334,
+              "Y": -3334.16431,
+              "Z": 0
+            },
+            "Bounds": {
+              "$type": "Box",
+              "Max": {
+                "$type": "Vector4",
+                "W": 0,
+                "X": -5772.17334,
+                "Y": -3334.16431,
+                "Z": 0
+              },
+              "Min": {
+                "$type": "Vector4",
+                "W": 0,
+                "X": -5772.17334,
+                "Y": -3334.16431,
+                "Z": 0
+              }
+            },
+            "QuestPrefabRefHash": {
+              "$type": "NodeRef",
+              "$storage": "uint64",
+              "$value": "0"
+            },
+            "UkHash1": {
+              "$type": "NodeRef",
+              "$storage": "uint64",
+              "$value": "0"
+            },
+            "CookedPrefabData": {
+              "DepotPath": {
+                "$type": "ResourcePath",
+                "$storage": "uint64",
+                "$value": "0"
+              },
+              "Flags": "Default"
+            },
+            "MaxStreamingDistance": 106.066017,
+            "UkFloat1": 132.58252,
+            "Uk10": 1024,
+            "Uk11": 642,
+            "Uk12": 0,
+            "Uk13": "0",
+            "Uk14": "0"
+          }
+        ]
+      },
+      "nodeRefs": [],
+      "nodes": [
+        {
+          "HandleId": "0",
+          "Data": {
+            "$type": "worldWaterPatchNode",
+            "castLocalShadows": "Always",
+            "castRayTracedGlobalShadows": "Always",
+            "castRayTracedLocalShadows": "Always",
+            "castShadows": "Always",
+            "debugName": {
+              "$type": "CName",
+              "$storage": "string",
+              "$value": "water_patch_004"
+            },
+            "depth": 0,
+            "forceAutoHideDistance": 245.687164,
+            "generateNavmesh": 0,
+            "isHostOnly": 0,
+            "isVisibleInGame": 1,
+            "lodLevelScales": 4294967295,
+            "mesh": {
+              "DepotPath": {
+                "$type": "ResourcePath",
+                "$storage": "uint64",
+                "$value": "0"
+              },
+              "Flags": "Default"
+            },
+            "meshAppearance": {
+              "$type": "CName",
+              "$storage": "string",
+              "$value": "default"
+            },
+            "occluderAutohideDistanceScale": 255,
+            "occluderType": "Default",
+            "proxyScale": null,
+            "removeFromRainMap": 0,
+            "renderSceneLayerMask": "Default",
+            "sourcePrefabHash": "3924132039863296847",
+            "tag": "None",
+            "tagExt": "None",
+            "type": {
+              "$type": "worldWaterPatchNodeType",
+              "typeName": {
+                "$type": "CName",
+                "$storage": "string",
+                "$value": "Grid_100x100"
+              }
+            },
+            "version": 2,
+            "windImpulseEnabled": 1
+          }
+        }
+      ],
+      "persistentNodeIndex": 0,
+      "persistentNodes": [],
+      "variantIndices": [0
+      ],
+      "variantNodes": [],
+      "version": 62
+    },
+    "EmbeddedFiles": []
+  }
+}
