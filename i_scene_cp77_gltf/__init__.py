@@ -56,7 +56,7 @@ class CP77IOSuitePreferences(AddonPreferences):
         name="MaterialDepot Path",
         description="Path to the material depot folder",
         subtype='DIR_PATH',
-        default="//MaterialDepot"
+        default="/Volumes/MaterialDepot/"
     )
 
 

@@ -84,7 +84,7 @@ class Multilayered:
         self.ProjPath = str(ProjPath)
 
     def createBaseMaterial(self,matTemplateObj,mltemplate):
-        name=os.path.basename(mltemplate)
+        name=os.path.basename(mltemplate.replace('\\',os.sep))
         CT = imageFromRelPath(matTemplateObj["colorTexture"]["DepotPath"]["$value"],self.image_format,DepotPath=self.BasePath, ProjPath=self.ProjPath)
         NT = imageFromRelPath(matTemplateObj["normalTexture"]["DepotPath"]["$value"],self.image_format,isNormal = True,DepotPath=self.BasePath, ProjPath=self.ProjPath)
         RT = imageFromRelPath(matTemplateObj["roughnessTexture"]["DepotPath"]["$value"],self.image_format,isNormal = True,DepotPath=self.BasePath, ProjPath=self.ProjPath)
@@ -92,7 +92,7 @@ class Multilayered:
 
         TileMult = float(matTemplateObj.get("tilingMultiplier",1))
 
-        NG = bpy.data.node_groups.new(name[:-11],"ShaderNodeTree")
+        NG = bpy.data.node_groups.new(name.split('.')[0],"ShaderNodeTree")
         NG['mlTemplate']=mltemplate
         vers=bpy.app.version
         if vers[0]<4:
@@ -321,7 +321,7 @@ class Multilayered:
             OverrideTable = createOverrideTable(mltemplate)#get override info for colors and what not
            # Mat[os.path.basename(material).split('.')[0]+'_cols']=OverrideTable["ColorScale"]
 
-            NG = bpy.data.node_groups.new(os.path.basename(Data["MultilayerSetup"])[:-8]+"_Layer_"+str(LayerIndex),"ShaderNodeTree")#crLAer's node group
+            NG = bpy.data.node_groups.new(os.path.basename(Data["MultilayerSetup"].replace('\\',os.sep))[:-8]+"_Layer_"+str(LayerIndex),"ShaderNodeTree")#crLAer's node group
             vers=bpy.app.version
             if vers[0]<4:
                 NG.inputs.new('NodeSocketColor','ColorScale')
@@ -376,10 +376,10 @@ class Multilayered:
 
             GroupOutN = create_node(NG.nodes, "NodeGroupOutput", (200,-100))
             LayerGroupN['mlTemplate']=material
-            if not bpy.data.node_groups.get(os.path.basename(material)[:-11]):
-                self.createBaseMaterial(mltemplate,material)
+            if not bpy.data.node_groups.get(os.path.basename(material.replace('\\',os.sep)).split('.')[0]):
+                self.createBaseMaterial(mltemplate,material.replace('\\',os.sep))
 
-            BaseMat = bpy.data.node_groups.get(os.path.basename(material)[:-11])
+            BaseMat = bpy.data.node_groups.get(os.path.basename(material.replace('\\',os.sep)).split('.')[0])
             if BaseMat:
                 BMN = create_node(NG.nodes,"ShaderNodeGroup", (-2000,0))
                 BMN.width = 300

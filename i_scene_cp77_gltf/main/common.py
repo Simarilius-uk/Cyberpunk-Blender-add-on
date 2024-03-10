@@ -138,6 +138,9 @@ def json_ver_validate( json_data):
         return True
 
 def openJSON(path, mode='r',  ProjPath='', DepotPath=''):
+    path=path.replace('\\',os.sep)
+    DepotPath=DepotPath.replace('\\',os.sep)
+    ProjPath=ProjPath.replace('\\',os.sep)
     inproj=os.path.join(ProjPath,path)
     if os.path.exists(inproj):
         file = open(inproj,mode)
@@ -181,6 +184,8 @@ def imageFromPath(Img,image_format,isNormal = False):
 def imageFromRelPath(ImgPath, image_format='png', isNormal = False, DepotPath='',ProjPath=''):
     # The speedtree materials use the same name textures for different plants this code was loading the same leaves on all of them
     # Also copes with the fact that theres black.xbm in base and engine for instance
+    DepotPath=DepotPath.replace('\\',os.sep)
+    ProjPath=ProjPath.replace('\\',os.sep)
     inProj=os.path.join(ProjPath,ImgPath)[:-3]+ image_format
     inDepot=os.path.join(DepotPath,ImgPath)[:-3]+ image_format
     img_names=[k for k in bpy.data.images.keys() if bpy.data.images[k].filepath==inProj]
@@ -333,13 +338,6 @@ def CreateShaderNodeNormalMap(curMat,path = None, x = 0, y = 0, name = None,imag
         curMat.links.new(NormalRebuildGroup.outputs[0],nMap.inputs[1])
 
     return nMap
-
-def image_has_alpha(img):
-    b = 32 if img.is_float else 8
-    return (
-        img.depth == 2*b or   # Grayscale+Alpha
-        img.depth == 4*b      # RGB+Alpha
-    )
 
 def CreateShaderNodeRGB(curMat, color,x = 0, y = 0,name = None, isVector = False):
     rgbNode = curMat.nodes.new("ShaderNodeRGB")
@@ -515,13 +513,11 @@ def CreateGradMapRamp(CurMat, grad_image_node, location=(-400, 250)):
     row_index = 0
     # Get colors from the row
     colors = []
-    alphas = []
     for x in range(image_width):
-        pixel_data = grad_image_node.image.pixels[(row_index * image_width + x) * 4: (row_index * image_width + x) * 4 + 4]
+        pixel_data = grad_image_node.image.pixels[(row_index * image_width + x) * 4: (row_index * image_width + x) * 4 + 3]
         color = Color()
-        color.r, color.g, color.b = pixel_data[0:3]
+        color.r, color.g, color.b = pixel_data
         colors.append(color)
-        alphas.append(pixel_data[3])
         # Create ColorRamp node
     color_ramp_node = CurMat.nodes.new('ShaderNodeValToRGB')
     color_ramp_node.location = location
@@ -537,7 +533,7 @@ def CreateGradMapRamp(CurMat, grad_image_node, location=(-400, 250)):
                 element = color_ramp_node.color_ramp.elements.new(i / (len(colors) ))
             else:
                 element = color_ramp_node.color_ramp.elements[0]
-            element.color = (color.r, color.g, color.b, alphas[i])
+            element.color = (color.r, color.g, color.b, 1.0)
             element.position = stop_positions[i]
         
     color_ramp_node.color_ramp.interpolation = 'CONSTANT' 
