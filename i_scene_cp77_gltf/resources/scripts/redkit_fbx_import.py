@@ -69,6 +69,54 @@ def find_bsdf_socket(node, target_type='BSDF_PRINCIPLED'):
                 
     return None
 
+def rename_vgs(obj, armature):
+    bone_names = {'head':	'Head','hroll'	:'HeadTip','pelvis':	'Hips','l_bicep':	'LeftArm','l_foot':	'LeftFoot','l_forearm'	:'LeftForeArm','l_hand'	:'LeftHand',
+'l_index1'	:'LeftHandIndex1','l_index2':	'LeftHandIndex2','l_index3'	:'LeftHandIndex3','l_middle1':	'LeftHandMiddle1','l_middle2'	:'LeftHandMiddle2',
+'l_middle3':	'LeftHandMiddle3','l_pinky1'	:'LeftHandPinky1','l_pinky2':	'LeftHandPinky2','l_pinky3':	'LeftHandPinky3','l_ring1':	'LeftHandRing1',
+'l_ring2':	'LeftHandRing2','l_ring3'	:'LeftHandRing3','l_thumb1':	'LeftHandThumb1','l_thumb2':	'LeftHandThumb2','l_pinky0':	'LeftInHandPinky',
+'l_shin':	'LeftLeg','l_shoulder'	:'LeftShoulder','l_toe'	:'LeftToeBase','l_thigh':	'LeftUpLeg','neck':	'Neck','Reference'	:'reference_joint','r_bicep'	:'RightArm',
+'r_foot'	:'RightFoot','r_forearm':	'RightForeArm','r_hand'	:'RightHand','r_middle1':	'RightHandMiddle1','r_index1'	:'RightHandMiddle1','r_middle2':	'RightHandMiddle2',
+'r_index2':	'RightHandMiddle2','r_middle3':	'RightHandMiddle3','r_index3':	'RightHandMiddle3','r_pinky1':	'RightHandPinky1','r_pinky2':	'RightHandPinky2',
+'r_pinky3':	'RightHandPinky3','r_ring1'	:'RightHandRing1','r_ring2':	'RightHandRing2','r_ring3':	'RightHandRing3','r_thumb1':	'RightHandThumb1',
+'r_thumb2':	'RightHandThumb2','r_index_knuckleRoll':	'RightInHandIndex','r_middle_knuckleRoll':	'RightInHandMiddle','r_pinky0':	'RightInHandPinky',
+'r_pinky_knuckleRoll':	'RightInHandPinky','r_ring_knuckleRoll':	'RightInHandRing','r_thumb_roll':	'RightInHandThumb','r_shin':	'RightLeg',
+'r_shoulder':	'RightShoulder','r_shoulderRoll':	'RightShoulder','r_toe':	'RightToeBase','r_thigh':	'RightUpLeg',
+'torso':	'Spine','torso2':	'Spine1','torso3':	'Spine2','l_weapon':	'WeaponLeft','r_weapon':	'WeaponRight','Root':	'Root'}
+    remove_list = []
+    renamed=[]
+    for vg in obj.vertex_groups:
+        origname = vg.name
+        if origname in bone_names:
+            vg.name = bone_names[origname]
+            armature.data.bones[origname].name = bone_names[origname]
+            renamed.append( bone_names[origname])
+            print(origname, '->', bone_names[origname])
+
+        else:
+            obj.vertex_groups.remove(vg)
+            remove_list.append(origname)
+            print('Removed vertex group:', origname)
+    for bone in armature.data.bones:
+        if bone.name not in bone_names and bone.name not in remove_list and bone.name not in renamed:
+            remove_list.append(bone.name)
+    # make the armature active
+    bpy.ops.object.select_all(action='DESELECT')
+    armature.select_set(True)
+    armature.hide_set(False)
+    armature.select_set(True)
+    bpy.context.view_layer.objects.active = armature
+
+    # Enter edit mode
+    bpy.ops.object.mode_set(mode='EDIT')
+    for bone_name in remove_list:
+        # Ensure the bone exists before attempting to remove it
+        if bone_name in armature.data.edit_bones:
+            bone = armature.data.edit_bones[bone_name]
+            armature.data.edit_bones.remove(bone)
+
+    # Return to object mode
+    bpy.ops.object.mode_set(mode='OBJECT')
+
 def oldfind_bsdf_socket(node, target_type='BSDF_PRINCIPLED'):
     def trace_connection(output_socket):
         for link in output_socket.links:
@@ -186,17 +234,35 @@ def export_redkit_to_glb(filename):
                     armature_modifier = modifier
                     break
 
-        if False:
+        if True:
+            armature_modifier = None
+            for modifier in obj.modifiers:
+                if modifier.type == 'ARMATURE' and modifier.object:
+                    armature_modifier = modifier
+                    break
             if not armature_modifier:
                 print(f"Armature missing from: {obj.name} Armatures are required for movement. If this is intentional, try 'export as static prop'. See https://tinyurl.com/armature-missing")
                 return {'CANCELLED'}
-            # Store original visibility and selection state
+
+            # Save the current selection
+            selected_objects = bpy.context.selected_objects
+            active_object = bpy.context.view_layer.objects.active
+
             armature = armature_modifier.object
+            # Store original visibility and selection state
             armature_states[armature] = {"hide": armature.hide_get(),
                                         "select": armature.select_get()}
+            rename_vgs(obj,armature)
 
             # Make necessary to armature visibility and selection state for export
             armature.hide_set(False)
+            # Restore the original selection and active object
+            bpy.ops.object.select_all(action='DESELECT')
+            for obj in selected_objects:
+                obj.select_set(True)
+            if active_object:
+                bpy.context.view_layer.objects.active = active_object
+
             armature.select_set(True)
 
             for bone in armature.pose.bones:
@@ -205,30 +271,13 @@ def export_redkit_to_glb(filename):
             if armature_modifier.object != mesh.parent:
                 armature_modifier.object = mesh.parent
 
-            group_has_bone = {group.index: False for group in obj.vertex_groups}
-            # groupless_bones = {}
-            for group in obj.vertex_groups:
-                if group.name in bone_names:
-                    group_has_bone[group.index] = True
-                        # print(vertex_group.name)
-
-                # Add groups with no weights to the set
-            for group_index, has_bone in group_has_bone.items():
-                if not has_bone:
-                    groupless_bones.add(obj.vertex_groups[group_index].name)
-
-        if len(groupless_bones) != 0:
-            bpy.ops.object.mode_set(mode='OBJECT')  # Ensure in object mode for consistent behavior
-            groupless_bones_list = ", ".join(sorted(groupless_bones))
-            armature.hide_set(True)
-            print(f"The following vertex groups are not assigned to a bone, this will result in blender creating a neutral_bone and cause Wolvenkit import to fail:    {groupless_bones_list}\nSee https://tinyurl.com/unassigned-bone")
-            return {'CANCELLED'}
 
         if mesh.data.name != mesh.name:
             mesh.data.name = mesh.name
 
         if limit_selected:
             try:
+                bpy.ops.export_scene.fbx(filepath=filename.replace('glb','fbx'), use_selection=True)
                 bpy.ops.export_scene.gltf(filepath=filename, use_selection=True, **options)
                 if not static_prop:
                     armature.hide_set(True)
@@ -259,7 +308,7 @@ def export_redkit_to_glb(filename):
                             if c=='Diffuse' or c=='Normal'  :
                                 if image:
                                     # Construct the file path
-                                    filepath = os.path.join(export_folder, mesh_name+'_'+material_slot.material.name+'_'+c+'.png')
+                                    filepath = os.path.join(export_folder, mesh_name.replace('.','_')+'_'+material_slot.material.name.replace('.','_')+'_'+c+'.png')
                                     
                                     # Save the image
                                     image.filepath_raw = filepath
@@ -380,5 +429,5 @@ def output_metal_base_json(objects,filename):
 fbx_file = 'C:\\CPMod\\witchermod\\c_01_wa__triss.fbx'
 #import_redkit_fbx(fbx_file)
 
-export_redkit_to_glb('C:\\CPMod\\witchermod\\yennifer.glb')
+export_redkit_to_glb('C:\\CPMod\\witchermod\\yennifer2.glb')
 #xml_file = 'C:\\CPMod\\witchermod\\yennefer.xml'
