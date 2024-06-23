@@ -35,19 +35,19 @@ class Decal:
                     print("DiffuseTextureAsMaskTexture  is: ",Data["values"][i]["DiffuseTextureAsMaskTexture"])
                 elif "DiffuseColor" in Data["values"][i].keys():
                     DiffuseColor = Data["values"][i]["DiffuseColor"]
-                    print("Diffuse Texture path is:  ",Data["values"][i]["DiffuseColor"])
+                    print("Diffuse Color is:  ",Data["values"][i]["DiffuseColor"])
                 elif "DiffuseAlpha" in Data["values"][i].keys():
                     DiffuseAlpha = Data["values"][i]["DiffuseAlpha"]
                     print("DiffuseAlpha is:  ",Data["values"][i]["DiffuseAlpha"])
                 elif "RoughnessTexture" in Data["values"][i].keys():
                     RoughnessTexture = Data["values"][i]["RoughnessTexture"]["DepotPath"]['$value'][:-3]+self.image_format
-                    print("Roughness Texture path is:  ",Data["values"][i]["RoughnessTexture"])
+                    print("Roughness Texture path is:  ",Data["values"][i]["RoughnessTexture"]["DepotPath"]['$value'])
                 elif "NormalTexture" in Data["values"][i].keys():
                     NormalTexture = Data["values"][i]["NormalTexture"]["DepotPath"]['$value'][:-3]+self.image_format
-                    print("Normal Texture path is:  ",Data["values"][i]["NormalTexture"])
+                    print("Normal Texture path is:  ",Data["values"][i]["NormalTexture"]["DepotPath"]['$value'])
                 elif "MetalnessTexture" in Data["values"][i].keys():
                     MetalnessTexture = Data["values"][i]["MetalnessTexture"]["DepotPath"]['$value'][:-3]+self.image_format
-                    print("Metalness Texture path is:  ",Data["values"][i]["MetalnessTexture"])
+                    print("Metalness Texture path is:  ",Data["values"][i]["MetalnessTexture"]["DepotPath"]['$value'])
                 
 
         CurMat = Mat.node_tree
@@ -126,7 +126,7 @@ class Decal:
             reroute2.location = (-275, 115)
             CurMat.links.new(mImgNode.outputs[0],reroute2.inputs[0])
             CurMat.links.new(reroute2.outputs[0],Prin_BSDF.inputs['Metallic'])
-            CurMat.links.new(TexCoordinate.outputs[0],rImgNode.inputs[0])         
+            CurMat.links.new(TexCoordinate.outputs[0],mImgNode.inputs[0])         
 
 
 # The above is  the code thats for the import plugin below is to allow testing/dev, you can run this file to import something

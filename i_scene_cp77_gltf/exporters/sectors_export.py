@@ -73,7 +73,7 @@ except:
         messages.append("If that doesn't help either, run the following command from an administrator command prompt:")
         messages.append(f"\t\"{blender_python_path}\" -m pip install pyyaml -t \"{blender_module_path}\"")
 
-    messages.apppend("You can learn more about running Blender scripts under https://tinyurl.com/cp2077blenderpython")
+    messages.append("You can learn more about running Blender scripts under https://tinyurl.com/cp2077blenderpython")
     for message in messages:
         print(message)
 

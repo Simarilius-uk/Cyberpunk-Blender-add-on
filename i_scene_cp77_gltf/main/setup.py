@@ -212,10 +212,10 @@ class MaterialBuilder:
             
             bpyMat = bpy.data.materials.new(name)
             bpyMat.use_nodes = True
-
-            match self.obj["Data"]["RootChunk"]["baseMaterial"]["DepotPath"]['$value']:
-                case "base\\materials\\decal.remt" | "base\\materials\\decal_roughness.mt" | "base\materials\decal_puddle.mt":# | "base\materials\decal_normal_roughness_metalness.mt":
-                    print('decal.remt')
+            mt=self.obj["Data"]["RootChunk"]["baseMaterial"]["DepotPath"]['$value']
+            match mt:
+                case "base\\materials\\decal.remt" | "base\\materials\\decal_roughness.mt" | "base\materials\decal_puddle.mt"| "base\materials\decal_terrain_projected.mt" | "base\materials\decal_normal_roughness.mt" | "base\materials\decal_normal_roughness_metalness.mt"| "base\materials\decal_normal_roughness_metalness_2.mt":
+                    print(mt)
                     decal = Decal(self.BasePath,self.image_format)
                     decal.create(self.obj["Data"]["RootChunk"],bpyMat)
 
@@ -227,6 +227,7 @@ class MaterialBuilder:
 
                 case _:
                     print(self.obj["Data"]["RootChunk"]["baseMaterial"]["DepotPath"]['$value']," | unimplemented yet")
+                    return None
             
             bpyMat.blend_method='HASHED'
             return bpyMat

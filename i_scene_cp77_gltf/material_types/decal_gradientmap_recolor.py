@@ -54,8 +54,8 @@ class DecalGradientmapRecolor:
             
             color_ramp_node=CreateGradMapRamp(CurMat, grad_image_node)
 
-            CurMat.links.new(diff_image_node.outputs[0], color_ramp_node.inputs[0])
-            CurMat.links.new(color_ramp_node.outputs[0], pBSDF.inputs['Base Color'])
+            CurMat.links.new(diff_image_node.outputs[0], grad_image_node.inputs[0])
+            CurMat.links.new(grad_image_node.outputs[0], pBSDF.inputs['Base Color'])
 
             #if 'alpha' in Data.keys():
              #   mulNode1.inputs[0].default_value = float(Data["alpha"])
@@ -69,12 +69,13 @@ class DecalGradientmapRecolor:
                 CurMat.links.new(alpha_ramp.outputs[0],pBSDF.inputs['Alpha'])
                 #CurMat.links.new(dImgNode.outputs[1],pBSDF.inputs['Alpha'])
             else:
-                if self.found(masktex):
-                    maskImg = imageFromRelPath(masktex,self.image_format, DepotPath=self.BasePath, ProjPath=self.ProjPath)
-                    mask_image_node = create_node(CurMat.nodes,"ShaderNodeTexImage",  (-800,-100), label="MaskTexture", image=maskImg)
-                    CurMat.links.new(mask_image_node.outputs[0], pBSDF.inputs['Alpha'])
-                else:
-                    CurMat.links.new(diff_image_node.outputs[1], pBSDF.inputs['Alpha'])
+                if Data['enableMask'] == 1:
+                    if self.found(masktex):
+                        maskImg = imageFromRelPath(masktex,self.image_format, DepotPath=self.BasePath, ProjPath=self.ProjPath)
+                        mask_image_node = create_node(CurMat.nodes,"ShaderNodeTexImage",  (-800,-100), label="MaskTexture", image=maskImg)
+                        CurMat.links.new(mask_image_node.outputs[0], pBSDF.inputs['Alpha'])
+                    else:
+                        CurMat.links.new(color_ramp_node.outputs[1], pBSDF.inputs['Alpha'])
         else:
             pBSDF.inputs['Alpha'].default_value = 0
 

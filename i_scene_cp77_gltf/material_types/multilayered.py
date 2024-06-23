@@ -182,6 +182,8 @@ class Multilayered:
                 MaskTexture = imageFromPath((os.path.splitext(self.BasePath + mlmaskpath)[0]+'_layers\\'+mlmaskpath.split('\\')[-1:][0][:-7]+"_"+str(x+1)+".png").replace('\\',os.sep),self.image_format,isNormal = True)
             else:
                 print('Mask image not found for layer ',x+1)
+                LayerCount=x+1
+                continue
 
 
 
@@ -189,7 +191,7 @@ class Multilayered:
             LayerGroupN.node_tree = NG
             LayerGroupN.name = "Layer_"+str(x)
 
-            MaskN = create_node(CurMat.nodes,"ShaderNodeTexImage",(-2400,400-100*x), image = MaskTexture,label="Layer_"+str(x+1))
+            MaskN = create_node(CurMat.nodes,"ShaderNodeTexImage",(-2400,400-100*x), image = MaskTexture ,label="Layer_"+str(x+1))
 
             #if self.flipMaskY:
             # Mask flip deprecated in WolvenKit deveolpment build 8.7+
@@ -278,7 +280,7 @@ class Multilayered:
         xllay = mlsetup.get("layers")
         if xllay is None:
             xllay = mlsetup.get("Layers")
-        LayerCount = len(xllay)
+        LayerCount = len([lay for lay in xllay if lay["material"]["DepotPath"]['$value']!='base\\surfaces\\materials\\special\\unused.mltemplate'])
 
         LayerIndex = 0
         CurMat = Mat.node_tree

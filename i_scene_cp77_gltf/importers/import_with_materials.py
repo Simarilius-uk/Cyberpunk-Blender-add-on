@@ -18,7 +18,7 @@ imported = None
 appearances = None
 collection = None
 
-def CP77GLBimport(self, exclude_unused_mats=True, image_format='png', with_materials=True, filepath='', hide_armatures=True,  import_garmentsupport=False, files=[], directory='', appearances=[], remap_depot=False):
+def CP77GLBimport(self, exclude_unused_mats=True, image_format='png', with_materials=True, filepath='', hide_armatures=True,  import_garmentsupport=False, files=[], directory='', appearances=[], remap_depot=False, coll_name=None):
 
     context=bpy.context
     loadfiles=self.files
@@ -85,7 +85,11 @@ def CP77GLBimport(self, exclude_unused_mats=True, image_format='png', with_mater
             UV_by_bounds(imported)
 
         #create a collection by file name
-        collection = bpy.data.collections.new(filename)
+        if coll_name:
+            collection = bpy.data.collections.new(coll_name)
+        else:
+            collection = bpy.data.collections.new(filename)
+            
         bpy.context.scene.collection.children.link(collection)
         for o in imported:
             import_meshes_and_anims(collection, gltf_importer, hide_armatures, o)

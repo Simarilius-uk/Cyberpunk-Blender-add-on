@@ -1464,6 +1464,7 @@ class CP77Import(Operator,ImportHelper):
     remap_depot: BoolProperty(name="Remap Depot",default=False,description="replace the json depot path with the one in prefs")
 
     filepath: StringProperty(subtype = 'FILE_PATH')
+    coll_name: StringProperty(name="Collector Name",default="")
 
     files: CollectionProperty(type=OperatorFileListElement)
     directory: StringProperty()
@@ -1485,7 +1486,7 @@ class CP77Import(Operator,ImportHelper):
     def execute(self, context):
         SetCyclesRenderer(self.use_cycles, self.update_gi)
         props = context.scene.cp77_panel_props
-        CP77GLBimport(self, self.exclude_unused_mats, self.image_format, self.with_materials, self.filepath, self.hide_armatures, self.import_garmentsupport, self.files, self.directory, self.appearances, props.remap_depot)
+        CP77GLBimport(self, self.exclude_unused_mats, self.image_format, self.with_materials, self.filepath, self.hide_armatures, self.import_garmentsupport, self.files, self.directory, self.appearances, props.remap_depot, self.coll_name)
 
         return {'FINISHED'}
 
